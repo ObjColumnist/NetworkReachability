@@ -85,8 +85,7 @@ public class Reachability {
             if SCNetworkReachabilityGetFlags(networkReachabilityRef, &networkReachabilityFlags) == 1 {
                 if isLocalWiFiNetworkReachabilityRef {
                     reachabilityStatus = localWiFiStatusForNetworkReachabilityFlags(networkReachabilityFlags)
-                }
-                else {
+                } else {
                     reachabilityStatus = networkStatusForNetworkReachabilityFlags(networkReachabilityFlags)
                 }
             }
@@ -113,8 +112,7 @@ public class Reachability {
             
             if status == .ReachableViaWiFi || status == .ReachableViaWWAN {
                 return true
-            }
-            else {
+            } else {
                 return false
             }
         }
@@ -124,8 +122,7 @@ public class Reachability {
         get {
             if reachable && connectionRequired == false {
                 return true
-            }
-            else {
+            } else {
                 return false
             }
         }
