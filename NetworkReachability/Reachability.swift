@@ -37,7 +37,7 @@ public class Reachability {
         zeroAddress.sin_family = sa_family_t(AF_INET)
         
         let networkReachabilityRef = withUnsafePointer(&zeroAddress) {
-            SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, UnsafePointer($0)).takeUnretainedValue()
+            SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, UnsafePointer($0))!
         }
         
         return networkReachabilityRef
@@ -53,14 +53,14 @@ public class Reachability {
         localWifiAddress.sin_addr.s_addr = in_addr_t(address.bigEndian)
         
         let networkReachabilityRef = withUnsafePointer(&localWifiAddress) {
-            SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, UnsafePointer($0)).takeUnretainedValue()
+            SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, UnsafePointer($0))!
         }
         
         return networkReachabilityRef
     }
     
     private class func networkReachabilityRefWithHostName(hostName: String) -> SCNetworkReachabilityRef {
-        return SCNetworkReachabilityCreateWithName(nil, hostName).takeUnretainedValue()
+        return SCNetworkReachabilityCreateWithName(nil, hostName)!
     }
     
     public var statusHandler: StatusHandler? {
@@ -70,7 +70,7 @@ public class Reachability {
             }
         }
         didSet {
-            if let statusHandler = statusHandler {
+            if let _ = statusHandler {
                 startMonitoring()
             }
         }
@@ -80,9 +80,9 @@ public class Reachability {
         get {
             var reachabilityStatus: Status = .NotReachable
             
-            var networkReachabilityFlags: SCNetworkReachabilityFlags = 0
+            var networkReachabilityFlags: SCNetworkReachabilityFlags = []
             
-            if SCNetworkReachabilityGetFlags(networkReachabilityRef, &networkReachabilityFlags) == 1 {
+            if SCNetworkReachabilityGetFlags(networkReachabilityRef, &networkReachabilityFlags) == true {
                 if isLocalWiFiNetworkReachabilityRef {
                     reachabilityStatus = localWiFiStatusForNetworkReachabilityFlags(networkReachabilityFlags)
                 } else {
@@ -96,10 +96,10 @@ public class Reachability {
     
     public var connectionRequired: Bool {
         get {
-            var networkReachabilityFlags: SCNetworkReachabilityFlags = 0
+            var networkReachabilityFlags: SCNetworkReachabilityFlags = []
             
-            if SCNetworkReachabilityGetFlags(networkReachabilityRef, &networkReachabilityFlags) == 1 {
-                return (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionRequired) != 0)
+            if SCNetworkReachabilityGetFlags(networkReachabilityRef, &networkReachabilityFlags) == true {
+                return (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.ConnectionRequired.rawValue != 0)
             }
             
             return false
@@ -107,9 +107,7 @@ public class Reachability {
     }
     
     public var reachable: Bool {
-        get {
-            let reachabilityStatus = status
-            
+        get {            
             if status == .ReachableViaWiFi || status == .ReachableViaWWAN {
                 return true
             } else {
@@ -151,7 +149,7 @@ public class Reachability {
         if monitoring == false {
             var context = SCNetworkReachabilityContext()
             
-            let block: @objc_block (SCNetworkReachabilityRef, SCNetworkReachabilityFlags, UnsafePointer<Void>) -> Void = { [weak self]
+            let block: @convention(block) (SCNetworkReachabilityRef, SCNetworkReachabilityFlags, UnsafePointer<Void>) -> Void = { [weak self]
                 (networkReachability: SCNetworkReachabilityRef, flags: SCNetworkReachabilityFlags, data: UnsafePointer<Void>) in
                 
                 if let reachability = self {
@@ -164,8 +162,8 @@ public class Reachability {
             let blockObject = imp_implementationWithBlock(unsafeBitCast(block, AnyObject.self))
             let functionPointer = unsafeBitCast(blockObject, SCNetworkReachabilityCallBack.self)
             
-            if SCNetworkReachabilitySetCallback(networkReachabilityRef, functionPointer, &context) == 1 {
-                if SCNetworkReachabilitySetDispatchQueue(networkReachabilityRef, dispatchQueue) == 1 {
+            if SCNetworkReachabilitySetCallback(networkReachabilityRef, functionPointer, &context) == true {
+                if SCNetworkReachabilitySetDispatchQueue(networkReachabilityRef, dispatchQueue) == true {
                     started = true
                 }
             }
@@ -182,8 +180,8 @@ public class Reachability {
         var stopped = false
         
         if monitoring {
-            if SCNetworkReachabilitySetCallback(networkReachabilityRef, nil, nil) == 1 {
-                if SCNetworkReachabilitySetDispatchQueue(networkReachabilityRef, nil) == 1 {
+            if SCNetworkReachabilitySetCallback(networkReachabilityRef, nil, nil) == true {
+                if SCNetworkReachabilitySetDispatchQueue(networkReachabilityRef, nil) == true {
                     stopped = true
                 }
             }
@@ -200,7 +198,7 @@ public class Reachability {
         
         var status: Status = .NotReachable
         
-        if (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsReachable) != 0) && (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsIsDirect) != 0) {
+        if (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.Reachable.rawValue != 0) && (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.IsDirect.rawValue != 0) {
             status = .ReachableViaWiFi
         }
         
@@ -208,24 +206,24 @@ public class Reachability {
     }
     
     private func networkStatusForNetworkReachabilityFlags(networkReachabilityFlags: SCNetworkReachabilityFlags) -> Status {
-        if (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsReachable)) == 0 {
+        if (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.Reachable.rawValue) == 0 {
             return .NotReachable
         }
         
         var status: Status = .NotReachable
         
-        if (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionRequired)) == 0 {
+        if (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.ConnectionRequired.rawValue) == 0 {
             status = .ReachableViaWiFi
         }
         
-        if (((networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionOnDemand) ) != 0) ||
-            (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsConnectionOnTraffic)) != 0) {
-                if (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsInterventionRequired)) == 0 {
+        if (((networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.ConnectionOnDemand.rawValue ) != 0) ||
+            (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.ConnectionOnTraffic.rawValue) != 0) {
+                if (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.InterventionRequired.rawValue) == 0 {
                     status = .ReachableViaWiFi;
                 }
         }
         
-        if (networkReachabilityFlags & SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsIsWWAN)) == SCNetworkReachabilityFlags(kSCNetworkReachabilityFlagsIsWWAN) {
+        if (networkReachabilityFlags.rawValue & SCNetworkReachabilityFlags.IsWWAN.rawValue) == SCNetworkReachabilityFlags.IsWWAN.rawValue {
             status = .ReachableViaWWAN;
         }
         
