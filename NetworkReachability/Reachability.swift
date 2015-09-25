@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Square Bracket Software. All rights reserved.
 //
 
-import UIKit
+import Foundation
 import SystemConfiguration
 
 public class Reachability {
