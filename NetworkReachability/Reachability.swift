@@ -17,7 +17,7 @@ public class Reachability {
         case ReachableViaWWAN
     }
     
-    public typealias StatusHandler = (Reachability, Status, Bool) -> (Void)
+    public typealias StatusHandler = (Reachability) -> (Void)
     
     public class func reachabilityForInternetConnection() -> Reachability {
         return Reachability(networkReachabilityRef: Reachability.networkReachabilityRefForInternetConnection(), isLocalWiFiNetworkReachabilityRef: false)
@@ -154,7 +154,7 @@ public class Reachability {
                 
                 if let reachability = self {
                     if let statusHandler = reachability.statusHandler {
-                        statusHandler(reachability, reachability.status, reachability.connectionRequired)
+                        statusHandler(reachability)
                     }
                 }
             }
