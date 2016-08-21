@@ -4,35 +4,35 @@
 
 `Reachability` is a class that is built upon the GCD `SCNetworkReachabilityRef` APIs, that makes it quick and easy to query and monitor the Network Reachability of your iOS or OS X device.
 
-You can query and monitor if a remote Host Name or Address is reachable, or just that you have a Local WiFi or Internet Connection, using one of the class constructors:
+You can query and monitor if a specific network Host, Node or Address is reachable, or just that you have a Local WiFi or Internet Connection, using one of the class constructors:
 
 ```swift
-public class func reachabilityForInternetConnection() -> Reachability
-public class func reachabilityForLocalWiFi() -> Reachability
-public class func reachabilityWithHostName(hostName: String) -> Reachability
+public class func forInternetConnection() -> Reachability
+public class func forLocalWiFi() -> Reachability
+public class func with(_ name: String) -> Reachability
 ```
 
 Once you have initalized a Network Reachabilty object, you simply need to check the 2 properties:
 
 ```swift
 public var status: Status
-public var connectionRequired: Bool 
+public var isConnectionRequired: Bool 
 ```
 
 The `Status` enum is defined as:
 
 ```swift
 public enum Status {
-    case NotReachable
-    case ReachableViaWiFi
-    case ReachableViaWWAN
+    case notReachable
+    case reachableViaWiFi
+    case reachableViaWWAN
 }
 ```
 
-Typically you will just want to check the `reachableWithoutConnection` property (which checks the `status` and `connectionRequired` properties):
+Typically you will just want to check the `isReachableWithoutConnection` property (which checks the `status` and `isConnectionRequired` properties):
 
 ```swift
-public var reachableWithoutConnection: Bool
+public var isReachableWithoutConnection: Bool
 ```
 
 If you wish to monitor reachability changes simply set the `statusHander` property, which passes in the `Reachability` as an argument:
