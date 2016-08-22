@@ -2,14 +2,19 @@
 
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
-`Reachability` is a class that is built upon the GCD `SCNetworkReachabilityRef` APIs, that makes it quick and easy to query and monitor the Network Reachability of your iOS or OS X device.
+`Reachability` is a class that is built upon the GCD `SCNetworkReachabilityRef` APIs, that makes it quick and easy to query and monitor the Network Reachability of your iOS or macOS device.
 
-You can query and monitor if a specific network Host, Node or Address is reachable, or just that you have a Local WiFi or Internet Connection, using one of the class constructors:
+You can query and monitor if a specific network Host, Node or Address is reachable using the initializer:
 
 ```swift
-public class func forInternetConnection() -> Reachability
-public class func forLocalWiFi() -> Reachability
-public class func with(_ name: String) -> Reachability
+public convenience init?(name: String)
+```
+
+or just query or monitor that you have a Local WiFi or Internet Connection using one of the class constructors:
+
+```swift
+public class func internetConnection() -> Reachability
+public class func localWiFi() -> Reachability
 ```
 
 Once you have initalized a Network Reachabilty object, you simply need to check the 2 properties:

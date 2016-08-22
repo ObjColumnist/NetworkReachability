@@ -18,16 +18,12 @@ public final class Reachability {
     
     public typealias StatusHandler = (Reachability) -> (Void)
     
-    public class func forInternetConnection() -> Reachability {
+    public class func internetConnection() -> Reachability {
         return Reachability(networkReachabilityRef: Reachability.networkReachabilityRefForInternetConnection(), isLocalWiFiNetworkReachabilityRef: false)
     }
     
-    public class func forLocalWiFi() -> Reachability {
+    public class func localWiFi() -> Reachability {
         return Reachability(networkReachabilityRef: Reachability.networkReachabilityRefForLocalWiFi(), isLocalWiFiNetworkReachabilityRef: true)
-    }
-    
-    public class func with(_ name: String) -> Reachability {
-        return Reachability(networkReachabilityRef: Reachability.networkReachabilityRefWithName(name), isLocalWiFiNetworkReachabilityRef: false)
     }
     
     fileprivate class func networkReachabilityRefForInternetConnection() -> SCNetworkReachability {
@@ -62,8 +58,8 @@ public final class Reachability {
         return networkReachabilityRef!
     }
     
-    fileprivate class func networkReachabilityRefWithName(_ name: String) -> SCNetworkReachability {
-        return SCNetworkReachabilityCreateWithName(nil, name)!
+    fileprivate class func networkReachabilityRef(with name: String) -> SCNetworkReachability? {
+        return SCNetworkReachabilityCreateWithName(nil, name)
     }
     
     public var statusHandler: StatusHandler? {
@@ -130,6 +126,14 @@ public final class Reachability {
     fileprivate init(networkReachabilityRef: SCNetworkReachability, isLocalWiFiNetworkReachabilityRef: Bool) {
         self.networkReachabilityRef = networkReachabilityRef
         self.isLocalWiFiNetworkReachabilityRef = isLocalWiFiNetworkReachabilityRef
+    }
+    
+    public convenience init?(name: String) {
+        guard let networkReachabilityRef = Reachability.networkReachabilityRef(with: name) else {
+            return nil
+        }
+        
+        self.init(networkReachabilityRef: networkReachabilityRef, isLocalWiFiNetworkReachabilityRef: false)
     }
     
     deinit {
